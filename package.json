@@ -1,6 +1,6 @@
 {
   "name": "claude-code-usage",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "A CLI tool for managing and viewing Claude Code usage statistics and installing enhanced wrappers",
   "main": "index.js",
   "bin": {

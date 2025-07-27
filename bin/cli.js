@@ -11,12 +11,17 @@ const { calculateCost } = require('llm-cost');
 
 program
   .name('claude-code-usage')
-  .version('1.3.0')
+  .version('1.6.0')
   .description('A CLI tool for managing and viewing Claude Code usage statistics')
   .option('-u, --usage', 'Display usage statistics', showUsage)
   .option('--install <command>', 'Install enhanced wrapper', installWrapper)
   .option('--uninstall <command>', 'Uninstall enhanced wrapper', uninstallWrapper)
   .parse(process.argv);
+
+// If no options provided, show usage by default for any command
+if (process.argv.slice(2).length === 0) {
+  showUsage();
+}
 
 // Helper function to calculate token costs using llm-cost
 function calculateTokenCosts(inputTokens, outputTokens, model) {
