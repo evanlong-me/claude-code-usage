@@ -1,0 +1,46 @@
+{
+  "name": "@evanlong/claude-code-usage",
+  "version": "1.0.0",
+  "description": "A CLI tool for managing and viewing Claude Code usage statistics and installing enhanced wrappers",
+  "main": "index.js",
+  "bin": {
+    "claude-code-usage": "./bin/cli.js",
+    "ccu": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "npm publish"
+  },
+  "keywords": [
+    "claude",
+    "claude-code", 
+    "usage",
+    "statistics",
+    "cli",
+    "wrapper",
+    "ai",
+    "anthropic"
+  ],
+  "author": "Evan Long <mail@evanlong.me>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6",
+    "fs-extra": "^11.1.1",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evanlong0803/claude-code-usage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evanlong0803/claude-code-usage/issues"
+  },
+  "homepage": "https://github.com/evanlong0803/claude-code-usage#readme"
+}
