@@ -2,8 +2,8 @@ name: Publish Package and Create Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version:
@@ -34,9 +34,57 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Get version from package.json
+      - name: Determine version type
+        id: version-type
+        run: |
+          # Default version increment
+          VERSION_TYPE="patch"
+          
+          # Get the last tag (if any)
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          # Determine the version increment based on commit messages since last tag
+          if [ -z "$LAST_TAG" ]; then
+            # No previous tags, check all commits
+            COMMIT_RANGE="HEAD"
+          else
+            # Check commits since last tag
+            COMMIT_RANGE="$LAST_TAG..HEAD"
+          fi
+          
+          echo "Analyzing commits since $LAST_TAG..."
+          
+          # Check for breaking changes
+          if git log $COMMIT_RANGE --pretty=%B | grep -q 'BREAKING CHANGE'; then
+            VERSION_TYPE="major"
+            echo "💥 Found BREAKING CHANGE - will bump major version"
+          # Check for new features
+          elif git log $COMMIT_RANGE --pretty=%B | grep -q '^feat'; then
+            VERSION_TYPE="minor"
+            echo "✨ Found new features - will bump minor version"
+          else
+            echo "🔧 Only fixes/improvements found - will bump patch version"
+          fi
+          
+          echo "version-type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          npm version ${{ steps.version-type.outputs.version-type }} --no-git-tag-version
+
+      - name: Get new version
         id: package-version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git add package.json
+          git commit -m "Bump version to ${{ steps.package-version.outputs.version }}"
+          git tag -a "v${{ steps.package-version.outputs.version }}" -m "Release v${{ steps.package-version.outputs.version }}"
+          git push origin main
+          git push origin "v${{ steps.package-version.outputs.version }}"
 
       - name: Create Git tag if needed
         if: github.event_name == 'workflow_dispatch'
