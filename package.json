@@ -1,6 +1,6 @@
 {
   "name": "claude-code-usage",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A CLI tool for managing and viewing Claude Code usage statistics and installing enhanced wrappers",
   "main": "index.js",
   "bin": {
@@ -24,8 +24,6 @@
   "author": "Evan Long <mail@evanlong.me>",
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.57.0",
-    "axios": "^1.6.0",
     "chalk": "^4.1.2",
     "cli-progress": "^3.12.0",
     "commander": "^11.1.0",

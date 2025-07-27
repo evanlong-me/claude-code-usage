@@ -6,12 +6,11 @@ const chalk = require('chalk');
 const ora = require('ora');
 const cliProgress = require('cli-progress');
 const usage = require('../lib/usage');
-const api = require('../lib/api');
 const { calculateCost } = require('llm-cost');
 
 program
   .name('claude-code-usage')
-  .version('1.6.0')
+  .version('1.7.0')
   .description('A CLI tool for managing and viewing Claude Code usage statistics')
   .option('-u, --usage', 'Display usage statistics', showUsage)
   .option('--install <command>', 'Install enhanced wrapper', installWrapper)
