@@ -1,5 +1,6 @@
-# Node.js dependencies (already committed, so keeping for future)
-# node_modules/
+# Node.js dependencies
+node_modules/
+package-lock.json
 
 # Logs
 *.log
