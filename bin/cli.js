@@ -4,9 +4,7 @@ const { Command } = require('commander');
 const program = new Command();
 const chalk = require('chalk');
 const ora = require('ora');
-const cliProgress = require('cli-progress');
 const usage = require('../lib/usage');
-const { calculateCost } = require('llm-cost');
 const { version } = require('../package.json');
 
 program
@@ -21,48 +19,6 @@ if (process.argv.slice(2).length === 0) {
   showUsage();
 }
 
-// Helper function to calculate token costs using llm-cost
-function calculateTokenCosts(inputTokens, outputTokens, model) {
-  try {
-    const inputCost = calculateCost({
-      model: model,
-      inputTokens: inputTokens
-    }) || 0;
-    
-    const outputCost = calculateCost({
-      model: model, 
-      outputTokens: outputTokens
-    }) || 0;
-    
-    return {
-      inputCost,
-      outputCost,
-      totalCost: inputCost + outputCost
-    };
-  } catch (error) {
-    // Fallback to manual calculation if llm-cost fails
-    const rates = getModelRates(model);
-    return {
-      inputCost: (inputTokens / 1000000) * rates.input,
-      outputCost: (outputTokens / 1000000) * rates.output,
-      totalCost: (inputTokens / 1000000) * rates.input + (outputTokens / 1000000) * rates.output
-    };
-  }
-}
-
-// Fallback pricing for different models (per 1M tokens)
-function getModelRates(model) {
-  const rates = {
-    'claude-3-haiku-20240307': { input: 0.25, output: 1.25 },
-    'claude-3-sonnet-20240229': { input: 3, output: 15 },
-    'claude-3-opus-20240229': { input: 15, output: 75 },
-    'claude-3-5-sonnet-20240620': { input: 3, output: 15 },
-    'claude-3-5-sonnet-20241022': { input: 3, output: 15 }
-  };
-  
-  return rates[model] || rates['claude-3-sonnet-20240229'];
-}
-
 async function showUsage() {
   const spinner = ora('Fetching usage data...').start();
   try {
@@ -71,40 +27,79 @@ async function showUsage() {
     
     console.log(chalk.green('\nClaude Code Usage Statistics\n'));
     
-    // Basic statistics
-    console.log(`Total sessions: ${chalk.yellow(data.totalSessions.toLocaleString())}`);
-    console.log(`Actual cost: ${chalk.green('$' + data.totalCost.toFixed(6))}`);
-    console.log(`Active projects: ${chalk.yellow(data.projectDetails.length)}`);
-    
-    // Token usage with pricing
-    if (data.totalInputTokens > 0 || data.totalOutputTokens > 0) {
-      console.log(chalk.cyan('Token Usage & Estimated Costs:'));
-      console.log(`  Input:  ${chalk.yellow(data.totalInputTokens.toLocaleString())} tokens`);
-      console.log(`  Output: ${chalk.yellow(data.totalOutputTokens.toLocaleString())} tokens`);
-      console.log(`  Total:  ${chalk.yellow((data.totalInputTokens + data.totalOutputTokens).toLocaleString())} tokens\n`);
+    // Display available basic statistics
+    if (data.totalSessions) {
+      console.log(`Total sessions: ${chalk.yellow(data.totalSessions.toLocaleString())}`);
     }
     
-    // Project breakdown with pricing
-    if (data.projectDetails.length > 0) {
-      console.log(chalk.cyan('Project Breakdown (Top 5 by cost):'));
-      
-      const topProjects = data.projectDetails.slice(0, 5);
-      
-      topProjects.forEach((project, index) => {
-        const projectCosts = calculateTokenCosts(project.inputTokens, project.outputTokens, project.model);
-        
-        console.log(`\n${index + 1}. ${chalk.yellow(project.name)}`);
-        console.log(`   Actual: ${chalk.green('$' + project.cost.toFixed(6))}`);
-        console.log(`   Input:  ${chalk.yellow(project.inputTokens.toLocaleString())} tokens ${chalk.gray('($' + projectCosts.inputCost.toFixed(6) + ')')}`);
-        console.log(`   Output: ${chalk.yellow(project.outputTokens.toLocaleString())} tokens ${chalk.gray('($' + projectCosts.outputCost.toFixed(6) + ')')}`);
-      });
-      
-      if (data.projectDetails.length > 5) {
-        console.log(chalk.gray(`\n   ... and ${data.projectDetails.length - 5} more projects`));
+    if (data.totalActualCost) {
+      console.log(`Total actual cost: ${chalk.green('$' + data.totalActualCost.toFixed(6))}`);
+    }
+    
+    console.log(`Active projects: ${chalk.yellow(data.projectDetails.length)}`);
+    
+    // Token usage summary
+    if (data.totalInputTokens > 0 || data.totalOutputTokens > 0) {
+      console.log(chalk.cyan('\nToken Usage:'));
+      if (data.totalInputTokens > 0) {
+        console.log(`  Input tokens:  ${chalk.yellow(data.totalInputTokens.toLocaleString())}`);
+      }
+      if (data.totalOutputTokens > 0) {
+        console.log(`  Output tokens: ${chalk.yellow(data.totalOutputTokens.toLocaleString())}`);
+      }
+      console.log(`  Total tokens:  ${chalk.yellow((data.totalInputTokens + data.totalOutputTokens).toLocaleString())}`);
+    }
+    
+    // Cache usage if available
+    if (data.totalCacheCreationTokens > 0 || data.totalCacheReadTokens > 0) {
+      console.log(chalk.cyan('\nCache Usage:'));
+      if (data.totalCacheCreationTokens > 0) {
+        console.log(`  Cache creation: ${chalk.yellow(data.totalCacheCreationTokens.toLocaleString())} tokens`);
+      }
+      if (data.totalCacheReadTokens > 0) {
+        console.log(`  Cache read:     ${chalk.yellow(data.totalCacheReadTokens.toLocaleString())} tokens`);
       }
     }
     
-    console.log(chalk.gray('\nEstimated costs based on detected model pricing'));
+    // Project breakdown
+    if (data.projectDetails.length > 0) {
+      console.log(chalk.cyan('\nProject Breakdown (by token usage):'));
+      
+      const topProjects = data.projectDetails.slice(0, 10);
+      
+      topProjects.forEach((project, index) => {
+        console.log(`\n${index + 1}. ${chalk.yellow(project.name)}`);
+        console.log(`   Messages: ${chalk.white(project.messages.toLocaleString())}`);
+        
+        if (project.inputTokens > 0) {
+          console.log(`   Input:    ${chalk.yellow(project.inputTokens.toLocaleString())} tokens`);
+        }
+        if (project.outputTokens > 0) {
+          console.log(`   Output:   ${chalk.yellow(project.outputTokens.toLocaleString())} tokens`);
+        }
+        
+        if (project.cacheCreationTokens > 0) {
+          console.log(`   Cache creation: ${chalk.yellow(project.cacheCreationTokens.toLocaleString())} tokens`);
+        }
+        if (project.cacheReadTokens > 0) {
+          console.log(`   Cache read:     ${chalk.yellow(project.cacheReadTokens.toLocaleString())} tokens`);
+        }
+        
+        if (project.actualCost > 0) {
+          console.log(`   Actual cost:    ${chalk.green('$' + project.actualCost.toFixed(6))}`);
+        }
+        
+        if (project.lastActivity) {
+          console.log(`   Last activity: ${chalk.gray(new Date(project.lastActivity).toLocaleString())}`);
+        }
+      });
+      
+      if (data.projectDetails.length > 10) {
+        console.log(chalk.gray(`\n   ... and ${data.projectDetails.length - 10} more projects`));
+      }
+    }
+    
+    console.log(chalk.gray('\nData from Claude Code message records'));
     
   } catch (error) {
     spinner.stop();

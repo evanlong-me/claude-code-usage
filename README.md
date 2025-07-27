@@ -45,7 +45,6 @@ Claude Code Usage Statistics
 Total sessions: 12
 Actual cost: $0.248937
 Active projects: 3
-Detected model: claude-3-5-sonnet-20241022
 
 Token Usage & Estimated Costs:
   Input:  10,036 tokens ($0.030108)
