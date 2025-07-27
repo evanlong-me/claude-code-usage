@@ -8,11 +8,30 @@ set -e
 # Default version increment
 VERSION_TYPE="patch"
 
-# Determine the version increment based on commit messages
-if git log -1 --pretty=%B | grep -q 'BREAKING CHANGE'; then
+# Get the last tag (if any)
+LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+# Determine the version increment based on commit messages since last tag
+if [ -z "$LAST_TAG" ]; then
+  # No previous tags, check all commits
+  COMMIT_RANGE="HEAD"
+else
+  # Check commits since last tag
+  COMMIT_RANGE="$LAST_TAG..HEAD"
+fi
+
+echo "📋 Analyzing commits since $LAST_TAG..."
+
+# Check for breaking changes
+if git log $COMMIT_RANGE --pretty=%B | grep -q 'BREAKING CHANGE'; then
   VERSION_TYPE="major"
-elif git log -1 --pretty=%B | grep -q 'feat'; then
+  echo "💥 Found BREAKING CHANGE - will bump major version"
+# Check for new features
+elif git log $COMMIT_RANGE --pretty=%B | grep -q '^feat'; then
   VERSION_TYPE="minor"
+  echo "✨ Found new features - will bump minor version"
+else
+  echo "🔧 Only fixes/improvements found - will bump patch version"
 fi
 
 echo "🚀 Starting release process..."
