@@ -1,6 +1,5 @@
 # Node.js dependencies
 node_modules/
-package-lock.json
 
 # NPM configuration (contains auth tokens)
 .npmrc
