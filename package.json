@@ -1,7 +1,7 @@
 {
   "name": "claude-code-usage",
   "version": "1.7.1",
-  "description": "A CLI tool for managing and viewing Claude Code usage statistics and installing enhanced wrappers",
+  "description": "A lightweight CLI tool for quickly checking Claude Code usage statistics and costs",
   "main": "index.js",
   "bin": {
     "claude-code-usage": "bin/cli.js",
@@ -37,10 +37,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/evanlong0803/claude-code-usage.git"
+    "url": "git+https://github.com/evanlong-me/claude-code-usage.git"
   },
   "bugs": {
-    "url": "https://github.com/evanlong0803/claude-code-usage/issues"
+    "url": "https://github.com/evanlong-me/claude-code-usage/issues"
   },
-  "homepage": "https://github.com/evanlong0803/claude-code-usage#readme"
+  "homepage": "https://github.com/evanlong-me/claude-code-usage#readme"
 }
