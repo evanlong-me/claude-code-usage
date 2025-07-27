@@ -12,10 +12,8 @@ const { version } = require('../package.json');
 program
   .name('claude-code-usage')
   .version(version)
-  .description('A CLI tool for managing and viewing Claude Code usage statistics')
+  .description('A CLI tool for viewing Claude Code usage statistics')
   .option('-u, --usage', 'Display usage statistics', showUsage)
-  .option('--install <command>', 'Install enhanced wrapper', installWrapper)
-  .option('--uninstall <command>', 'Uninstall enhanced wrapper', uninstallWrapper)
   .parse(process.argv);
 
 // If no options provided, show usage by default for any command
@@ -120,15 +118,4 @@ async function showUsage() {
       console.error(chalk.red('❌ Error fetching usage data:'), error.message);
     }
   }
-}
-
-
-function installWrapper(cmd) {
-  console.log(`Installing ${cmd}...`);
-  // Implementation for installing an enhanced wrapper
-}
-
-function uninstallWrapper(cmd) {
-  console.log(`Uninstalling ${cmd}...`);
-  // Implementation for uninstalling an enhanced wrapper
 }
