@@ -11,7 +11,7 @@ const { version } = require('../package.json');
 
 program
   .name('claude-code-usage')
-  .version(version)
+  .version(version, '-v, --version', 'display version number')
   .description('A CLI tool for viewing Claude Code usage statistics')
   .option('-u, --usage', 'Display usage statistics', showUsage)
   .parse(process.argv);
