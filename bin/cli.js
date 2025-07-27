@@ -75,16 +75,13 @@ async function showUsage() {
     console.log(`Total sessions: ${chalk.yellow(data.totalSessions.toLocaleString())}`);
     console.log(`Actual cost: ${chalk.green('$' + data.totalCost.toFixed(6))}`);
     console.log(`Active projects: ${chalk.yellow(data.projectDetails.length)}`);
-    console.log(`Detected model: ${chalk.cyan(data.detectedModel)}\n`);
     
     // Token usage with pricing
     if (data.totalInputTokens > 0 || data.totalOutputTokens > 0) {
-      const costs = calculateTokenCosts(data.totalInputTokens, data.totalOutputTokens, data.detectedModel);
-      
       console.log(chalk.cyan('Token Usage & Estimated Costs:'));
-      console.log(`  Input:  ${chalk.yellow(data.totalInputTokens.toLocaleString())} tokens ${chalk.gray('($' + costs.inputCost.toFixed(6) + ')')}`);
-      console.log(`  Output: ${chalk.yellow(data.totalOutputTokens.toLocaleString())} tokens ${chalk.gray('($' + costs.outputCost.toFixed(6) + ')')}`);
-      console.log(`  Total:  ${chalk.yellow((data.totalInputTokens + data.totalOutputTokens).toLocaleString())} tokens ${chalk.gray('($' + costs.totalCost.toFixed(6) + ')')}\n`);
+      console.log(`  Input:  ${chalk.yellow(data.totalInputTokens.toLocaleString())} tokens`);
+      console.log(`  Output: ${chalk.yellow(data.totalOutputTokens.toLocaleString())} tokens`);
+      console.log(`  Total:  ${chalk.yellow((data.totalInputTokens + data.totalOutputTokens).toLocaleString())} tokens\n`);
     }
     
     // Project breakdown with pricing
@@ -94,7 +91,7 @@ async function showUsage() {
       const topProjects = data.projectDetails.slice(0, 5);
       
       topProjects.forEach((project, index) => {
-        const projectCosts = calculateTokenCosts(project.inputTokens, project.outputTokens, data.detectedModel);
+        const projectCosts = calculateTokenCosts(project.inputTokens, project.outputTokens, project.model);
         
         console.log(`\n${index + 1}. ${chalk.yellow(project.name)}`);
         console.log(`   Actual: ${chalk.green('$' + project.cost.toFixed(6))}`);
