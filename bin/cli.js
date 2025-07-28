@@ -27,11 +27,11 @@ program
     }
   });
 
-program.parse(process.argv);
-
 // If no options provided, show usage by default
 if (process.argv.slice(2).length === 0) {
   showUsage({});
+} else {
+  program.parse(process.argv);
 }
 
 async function showUsage(options) {
