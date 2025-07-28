@@ -8,6 +8,8 @@ const Table = require('cli-table3');
 const usage = require('../lib/usage');
 const filters = require('../lib/filters');
 const sorter = require('../lib/sorter');
+const aggregator = require('../lib/aggregator');
+const projectDetector = require('../lib/project-detector');
 const { version } = require('../package.json');
 
 program
@@ -19,86 +21,25 @@ program
   .option('-s, --sort <field>', 'Sort by field (cost, time, tokens, project)', 'time')
   .option('-o, --order <direction>', 'Sort order (asc, desc)', 'desc')
   .option('-d, --detailed', 'Show detailed view with individual messages (default: aggregated by day)')
+  .option('-a, --all', 'Show all projects (default: auto-detect current project if in project directory)')
   .option('--list-projects', 'List all available projects')
-  .action((options) => {
+  .action(async (options) => {
     if (options.listProjects) {
       showProjects();
     } else {
-      showUsage(options);
+      // Apply project auto-detection
+      const projectAwareOptions = await projectDetector.getProjectAwareOptions(options);
+      showUsage(projectAwareOptions);
     }
   });
 
-// Aggregate messages by project and date (same project, same day = one row)
-function aggregateMessagesByProjectAndDate(messages) {
-  const aggregationMap = new Map();
-  
-  messages.forEach(msg => {
-    // Get date string without time (YYYY-MM-DD)
-    const dateStr = msg.timestamp ? new Date(msg.timestamp).toISOString().split('T')[0] : 'unknown';
-    const project = msg.project || '';
-    const key = `${project}||${dateStr}`; // Using || as separator to avoid conflicts
-    
-    if (!aggregationMap.has(key)) {
-      // Create new aggregated entry
-      aggregationMap.set(key, {
-        timestamp: msg.timestamp, // Keep the first timestamp for the day
-        project: msg.project,
-        role: msg.role,
-        inputTokens: 0,
-        outputTokens: 0,
-        cacheWriteTokens: 0,
-        cacheReadTokens: 0,
-        model: msg.model, // Keep the first model, could be mixed
-        cost: 0,
-        messageCount: 0,
-        models: new Set() // Track all models used on this day
-      });
-    }
-    
-    const aggregated = aggregationMap.get(key);
-    
-    // Accumulate token counts and costs
-    aggregated.inputTokens += msg.inputTokens || 0;
-    aggregated.outputTokens += msg.outputTokens || 0;
-    aggregated.cacheWriteTokens += msg.cacheWriteTokens || 0;
-    aggregated.cacheReadTokens += msg.cacheReadTokens || 0;
-    aggregated.cost += msg.cost || 0;
-    aggregated.messageCount += 1;
-    
-    // Track models used
-    if (msg.model) {
-      aggregated.models.add(msg.model);
-    }
-    
-    // Update timestamp to the latest one for the day
-    if (msg.timestamp && new Date(msg.timestamp) > new Date(aggregated.timestamp)) {
-      aggregated.timestamp = msg.timestamp;
-    }
-  });
-  
-  // Convert back to array and format model field
-  const result = Array.from(aggregationMap.values()).map(entry => {
-    // If multiple models were used, show count, otherwise show the model name
-    if (entry.models.size > 1) {
-      entry.model = `${entry.models.size} models`;
-    } else if (entry.models.size === 1) {
-      entry.model = Array.from(entry.models)[0];
-    } else {
-      entry.model = '';
-    }
-    
-    // Remove the models Set as it's no longer needed
-    delete entry.models;
-    
-    return entry;
-  });
-  
-  return result;
-}
 
 // If no options provided, show usage by default
 if (process.argv.slice(2).length === 0) {
-  showUsage({});
+  (async () => {
+    const options = await projectDetector.getProjectAwareOptions({});
+    showUsage(options);
+  })();
 } else {
   program.parse(process.argv);
 }
@@ -121,7 +62,7 @@ async function showUsage(options) {
       finalMessages = filteredMessages;
     } else {
       // Default: aggregate messages by project and date
-      finalMessages = aggregateMessagesByProjectAndDate(filteredMessages);
+      finalMessages = aggregator.aggregateMessagesByProjectAndDate(filteredMessages);
     }
     
     // Apply sorting if specified
@@ -138,7 +79,10 @@ async function showUsage(options) {
         console.log(chalk.gray(`  Time: ${options.time}`));
       }
       if (options.project) {
-        console.log(chalk.gray(`  Project: ${options.project}`));
+        const projectDisplay = options.autoDetectedProject 
+          ? `${options.project} ${chalk.dim('(auto-detected)')}`
+          : options.project;
+        console.log(chalk.gray(`  Project: ${projectDisplay}`));
       }
       if (options.sort || options.order) {
         const sortBy = options.sort || 'time';

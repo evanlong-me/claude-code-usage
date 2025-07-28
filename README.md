@@ -8,6 +8,7 @@ A lightweight CLI tool for analyzing Claude Code usage statistics and costs loca
 - ⚡ **Quick Analysis** - View all usage statistics with a single `ccu` command
 - 💰 **Cost Tracking** - Accurate cost calculation based on Claude pricing
 - 📊 **Dual View Modes** - Switch between daily aggregated view and detailed message view
+- 🎯 **Smart Project Detection** - Auto-detects current project when run in project directories
 - 📋 **Clean Table Display** - Organized tabular output with token counts, costs, and project info
 - 🔍 **Smart Filtering** - Filter by time ranges and project names
 - 📈 **Flexible Sorting** - Sort by cost, time, tokens, or project name
@@ -92,6 +93,21 @@ ccu -s time -o desc
 ccu -p my-website -s cost -o desc  # my-website project sorted by cost
 ```
 
+### 🎯 Project Auto-Detection
+
+```bash
+# When run in a project directory, automatically filters to that project
+cd my-project
+ccu                     # Shows only my-project usage
+
+# Show all projects explicitly
+ccu --all               # Shows usage for all projects
+ccu -a
+
+# Manual project filtering still works
+ccu -p specific-project # Shows only specific-project usage
+```
+
 ### 📊 View Modes
 
 ```bash
@@ -112,10 +128,11 @@ ccu -p WebGem -d        # Shows all 57 individual WebGem messages with timestamp
 | Option | Description | Values | Default |
 |--------|-------------|--------|---------|
 | `-t, --time` | Time filter | `7d`, `1m`, `1y`, `6-8`, `july-august`, etc. | - |
-| `-p, --project` | Project filter | Project name (partial matching) | - |
+| `-p, --project` | Project filter | Project name (partial matching) | auto-detect |
 | `-s, --sort` | Sort field | `cost`, `time`, `tokens`, `project` | `time` |
 | `-o, --order` | Sort order | `asc`, `desc` | `desc` |
 | `-d, --detailed` | Show individual messages | - | `false` (aggregated) |
+| `-a, --all` | Show all projects | - | `false` (auto-detect) |
 | `--list-projects` | List all projects | - | - |
 
 ## 📊 Sample Output
