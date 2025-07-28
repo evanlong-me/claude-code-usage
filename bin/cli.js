@@ -23,8 +23,8 @@ program
   .option('-o, --order <direction>', 'Sort order (asc, desc)', 'desc')
   .option('-d, --detailed', 'Show detailed view with individual messages (default: aggregated by day)')
   .option('-a, --all', 'Show all projects (default: auto-detect current project if in project directory)')
-  .option('--list-projects', 'List all available projects')
-  .option('--list-models', 'List all available models with pricing')
+  .option('-lp, --list-projects', 'List all available projects')
+  .option('-lm, --list-models', 'List all available models with pricing')
   .action(async (options) => {
     if (options.listProjects) {
       showProjects();
@@ -168,37 +168,37 @@ async function showUsage(options) {
         grandTotal += totalTokens;
         totalMessages += projectMsgCount;
 
-        // Format cost as currency
-        const costFormatted = '$' + (msg.cost || 0).toFixed(6);
+        // Format cost as currency (rounded to 2 decimal places with thousands separator)
+        const costFormatted = '$' + (msg.cost || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
         table.push([
           chalk.gray(timeFormatted),
           chalk.yellow(msg.project || ''),
-          chalk.white(projectMsgCount.toLocaleString()),
-          chalk.yellow(msgInput.toLocaleString()),
-          chalk.yellow(msgOutput.toLocaleString()),
-          chalk.yellow(msgCacheCreate.toLocaleString()),
-          chalk.yellow(msgCacheRead.toLocaleString()),
+          { content: chalk.white(projectMsgCount.toLocaleString()), hAlign: 'right' },
+          { content: chalk.yellow(msgInput.toLocaleString()), hAlign: 'right' },
+          { content: chalk.yellow(msgOutput.toLocaleString()), hAlign: 'right' },
+          { content: chalk.yellow(msgCacheCreate.toLocaleString()), hAlign: 'right' },
+          { content: chalk.yellow(msgCacheRead.toLocaleString()), hAlign: 'right' },
           chalk.white(msg.model || ''),
-          chalk.green(totalTokens.toLocaleString()),
-          chalk.green(costFormatted)
+          { content: chalk.green(totalTokens.toLocaleString()), hAlign: 'right' },
+          { content: chalk.green(costFormatted), hAlign: 'right' }
         ]);
       });
 
       // Add total row
-      const totalCostFormatted = '$' + totalCost.toFixed(6);
+      const totalCostFormatted = '$' + totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       
       table.push([
         chalk.bold.cyan('TOTAL'),
         chalk.bold.cyan(''),
-        chalk.bold.green(totalMessages.toLocaleString()),
-        chalk.bold.green(totalInput.toLocaleString()),
-        chalk.bold.green(totalOutput.toLocaleString()),
-        chalk.bold.green(totalCacheCreate.toLocaleString()),
-        chalk.bold.green(totalCacheRead.toLocaleString()),
+        { content: chalk.bold.green(totalMessages.toLocaleString()), hAlign: 'right' },
+        { content: chalk.bold.green(totalInput.toLocaleString()), hAlign: 'right' },
+        { content: chalk.bold.green(totalOutput.toLocaleString()), hAlign: 'right' },
+        { content: chalk.bold.green(totalCacheCreate.toLocaleString()), hAlign: 'right' },
+        { content: chalk.bold.green(totalCacheRead.toLocaleString()), hAlign: 'right' },
         chalk.bold.cyan(''),
-        chalk.bold.green(grandTotal.toLocaleString()),
-        chalk.bold.green(totalCostFormatted)
+        { content: chalk.bold.green(grandTotal.toLocaleString()), hAlign: 'right' },
+        { content: chalk.bold.green(totalCostFormatted), hAlign: 'right' }
       ]);
 
       console.log(table.toString());

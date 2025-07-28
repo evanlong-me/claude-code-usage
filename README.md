@@ -37,24 +37,32 @@ npx claude-code-usage
 
 ### Basic Commands
 
+These are the basic commands you can use:
+
 ```bash
-# View usage statistics (default)
+# View usage statistics (default command)
 ccu
 
-# Show version
+# Display version information
 ccu -v
 
-# Show help
+# Display help information
 ccu --help
 
 # List all available projects
 ccu --list-projects
+# or use the short form
+ccu -lp
 
 # List all available models with pricing
 ccu --list-models
+# or use the short form
+ccu -lm
 ```
 
 ### 🔍 Filtering Options
+
+Filter your usage data by time range and project:
 
 ```bash
 # Filter by time range
@@ -70,11 +78,13 @@ ccu -t 2024-07-01,2024-08-31  # Specific date range
 ccu -p myproject    # Show only messages from projects containing "myproject"
 ccu -p my-website   # Show only my-website project
 
-# Combine filters
+# Combine filters for precise results
 ccu -t 1m -p my-website # Last month's my-website project data
 ```
 
 ### 📈 Sorting Options
+
+Sort your results by different criteria:
 
 ```bash
 # Sort by cost (highest first)
@@ -92,11 +102,13 @@ ccu -s project -o asc
 # Sort by time (default)
 ccu -s time -o desc
 
-# Combine with filtering
+# Combine sorting with filtering
 ccu -p my-website -s cost -o desc  # my-website project sorted by cost
 ```
 
 ### 🎯 Project Auto-Detection
+
+The tool automatically detects your current project and filters results accordingly:
 
 ```bash
 # When run in a project directory, automatically filters to that project
@@ -113,6 +125,8 @@ ccu -p specific-project # Shows only specific-project usage
 
 ### 📊 View Modes
 
+Switch between different viewing modes:
+
 ```bash
 # Default: aggregated view (by project and date)
 ccu
@@ -121,12 +135,14 @@ ccu
 ccu --detailed
 ccu -d
 
-# Compare the difference
-ccu -p WebGem           # Shows 1 aggregated entry for WebGem on 6/29/2025 (57 messages)
-ccu -p WebGem -d        # Shows all 57 individual WebGem messages with timestamps
+# Comparing views for specific projects
+ccu -p WebGem           # Aggregated entry for WebGem
+ccu -p WebGem -d        # All individual WebGem messages
 ```
 
-### 🎛️ All Options
+### 🅰️ All Options Reference
+
+Complete reference table of all available options:
 
 | Option | Description | Values | Default |
 |--------|-------------|--------|---------|
@@ -136,10 +152,12 @@ ccu -p WebGem -d        # Shows all 57 individual WebGem messages with timestamp
 | `-o, --order` | Sort order | `asc`, `desc` | `desc` |
 | `-d, --detailed` | Show individual messages | - | `false` (aggregated) |
 | `-a, --all` | Show all projects | - | `false` (auto-detect) |
-| `--list-projects` | List all projects | - | - |
-| `--list-models` | List all available models with pricing | - | - |
+| `-lp, --list-projects` | List all projects | - | - |
+| `-lm, --list-models` | List all available models with pricing | - | - |
 
 ## 📊 Sample Output
+
+An example of what the output may look like:
 
 ```
 🔍 Options applied:
@@ -164,6 +182,7 @@ ccu -p WebGem -d        # Shows all 57 individual WebGem messages with timestamp
 
 ```bash
 ccu --list-projects
+# or use short form: ccu -lp
 ```
 
 ```
@@ -181,14 +200,15 @@ ccu --list-projects
 
 ## 📁 Data Sources
 
-Reads local data from:
+This tool reads Claude Code usage data from your local files:
+
 - `~/.claude.json` - Main Claude Code configuration
 - `~/.claude/projects/` - Session records and project data
 - `~/.claude/settings.json` - User settings (optional)
 
 ## 🚨 Setup Instructions
 
-If Claude Code isn't configured, you'll see:
+First time using this tool? If Claude Code isn't configured on your system, you'll see:
 
 ```
 ❌ Claude Code configuration not found!
