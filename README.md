@@ -6,11 +6,10 @@ A lightweight CLI tool for analyzing Claude Code usage statistics and costs loca
 
 - 🔒 **100% Local & Secure** - No API keys required, reads local Claude Code data only
 - ⚡ **Quick Analysis** - View all usage statistics with a single `ccu` command
-- 💰 **Cost Tracking** - Real-time cost calculation based on Claude pricing
+- 💰 **Cost Tracking** - Accurate cost calculation based on Claude pricing
 - 📊 **Detailed Table View** - Clean tabular display with token counts, costs, and project info
 - 🔍 **Smart Filtering** - Filter by time ranges and project names
 - 📈 **Flexible Sorting** - Sort by cost, time, tokens, or project name
-- 🎯 **Project Management** - List and filter by specific projects
 - 🚀 **Easy to Use** - Simple installation and intuitive commands
 
 ## 🚀 Quick Start
@@ -21,8 +20,14 @@ npm install -g claude-code-usage
 ccu  # View statistics instantly
 ```
 
-### One-time Usage
+### Alternative Installation Methods
+
 ```bash
+# One-time usage (no installation required)
+npx claude-code-usage
+
+# Local project installation
+npm install claude-code-usage
 npx claude-code-usage
 ```
 
@@ -172,24 +177,6 @@ If Claude Code isn't configured, you'll see:
 - **No Network Calls** - No data sent anywhere
 - **No API Keys** - No authentication required
 - **Privacy First** - Your data stays on your machine
-
-## 📦 Installation Options
-
-### Global (Recommended)
-```bash
-npm install -g claude-code-usage
-```
-
-### Local Project
-```bash
-npm install claude-code-usage
-npx claude-code-usage
-```
-
-### Direct Usage
-```bash
-npx claude-code-usage
-```
 
 ## 🤝 Contributing
 
