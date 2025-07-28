@@ -6,9 +6,11 @@ A lightweight CLI tool for analyzing Claude Code usage statistics and costs loca
 
 - 🔒 **100% Local & Secure** - No API keys required, reads local Claude Code data only
 - ⚡ **Quick Analysis** - View all usage statistics with a single `ccu` command
-- 💰 **Accurate Cost Tracking** - Real costs + estimated pricing based on detected models
-- 📊 **Project Breakdown** - Detailed usage analytics per project
-- 🎯 **Smart Model Detection** - Automatically identifies actual Claude models from session records
+- 💰 **Cost Tracking** - Real-time cost calculation based on Claude pricing
+- 📊 **Detailed Table View** - Clean tabular display with token counts, costs, and project info
+- 🔍 **Smart Filtering** - Filter by time ranges and project names
+- 📈 **Flexible Sorting** - Sort by cost, time, tokens, or project name
+- 🎯 **Project Management** - List and filter by specific projects
 - 🚀 **Easy to Use** - Simple installation and intuitive commands
 
 ## 🚀 Quick Start
@@ -26,6 +28,8 @@ npx claude-code-usage
 
 ## 📋 Usage
 
+### Basic Commands
+
 ```bash
 # View usage statistics (default)
 ccu
@@ -35,47 +39,96 @@ ccu -v
 
 # Show help
 ccu --help
+
+# List all available projects
+ccu --list-projects
 ```
+
+### 🔍 Filtering Options
+
+```bash
+# Filter by time range
+ccu -t 7d           # Last 7 days
+ccu -t 1m           # Last 1 month
+ccu -t 1y           # Last 1 year
+ccu -t 6-8          # June to August (current year)
+ccu -t july-august  # July to August (current year)
+ccu -t 2024-7-2024-8      # July 2024 to August 2024
+ccu -t 2024-07-01,2024-08-31  # Specific date range
+
+# Filter by project (partial matching supported)
+ccu -p myproject    # Show only messages from projects containing "myproject"
+ccu -p WebGem       # Show only WebGem project
+
+# Combine filters
+ccu -t 1m -p WebGem # Last month's WebGem project data
+```
+
+### 📈 Sorting Options
+
+```bash
+# Sort by cost (highest first)
+ccu -s cost -o desc
+
+# Sort by cost (lowest first)
+ccu -s cost -o asc
+
+# Sort by total tokens
+ccu -s tokens -o desc
+
+# Sort by project name
+ccu -s project -o asc
+
+# Sort by time (default)
+ccu -s time -o desc
+
+# Combine with filtering
+ccu -p WebGem -s cost -o desc  # WebGem project sorted by cost
+```
+
+### 🎛️ All Options
+
+| Option | Description | Values | Default |
+|--------|-------------|--------|---------|
+| `-t, --time` | Time filter | `7d`, `1m`, `1y`, `6-8`, `july-august`, etc. | - |
+| `-p, --project` | Project filter | Project name (partial matching) | - |
+| `-s, --sort` | Sort field | `cost`, `time`, `tokens`, `project` | `time` |
+| `-o, --order` | Sort order | `asc`, `desc` | `desc` |
+| `--list-projects` | List all projects | - | - |
 
 ## 📊 Sample Output
 
 ```
-Claude Code Usage Statistics
+🔍 Options applied:
+  Project: WebGem
+  Sort: cost ↓
+  Results: 57 messages (62 total)
 
-Total sessions: 12
-Actual cost: $0.248937
-Active projects: 3
-
-Token Usage & Estimated Costs:
-  Input:  10,036 tokens ($0.030108)
-  Output: 4,002 tokens ($0.060030)
-  Total:  14,038 tokens ($0.090138)
-
-Project Breakdown (Top 5 by cost):
-
-1. my-website
-   Actual: $0.245467
-   Input:  8,018 tokens ($0.024054)
-   Output: 3,538 tokens ($0.053070)
-
-2. data-analysis
-   Actual: $0.002912
-   Input:  1,670 tokens ($0.005010)
-   Output: 394 tokens ($0.005910)
-
-Estimated costs based on detected model pricing
+┌────────────────────────┬─────────┬──────────┬───────┬────────┬──────────────┬────────────┬──────────────────────────┬───────────┬───────────┐
+│ Time                   │ Project │ Messages │ Input │ Output │ Cache Create │ Cache Read │ Model                    │ Total     │ Cost      │
+├────────────────────────┼─────────┼──────────┼───────┼────────┼──────────────┼────────────┼──────────────────────────┼───────────┼───────────┤
+│ 6/29/2025, 6:35:47 PM  │ WebGem  │ 57       │ 402   │ 26     │ 20,144       │ 0          │ claude-sonnet-4-20250514 │ 20,572    │ $0.062028 │
+├────────────────────────┼─────────┼──────────┼───────┼────────┼──────────────┼────────────┼──────────────────────────┼───────────┼───────────┤
+│ 6/29/2025, 6:35:50 PM  │ WebGem  │ 57       │ 402   │ 26     │ 20,144       │ 0          │ claude-sonnet-4-20250514 │ 20,572    │ $0.062028 │
+├────────────────────────┼─────────┼──────────┼───────┼────────┼──────────────┼────────────┼──────────────────────────┼───────────┼───────────┤
+│ 6/29/2025, 6:35:25 PM  │ WebGem  │ 57       │ 3     │ 1      │ 19,617       │ 0          │ claude-sonnet-4-20250514 │ 19,621    │ $0.058875 │
+├────────────────────────┼─────────┼──────────┼───────┼────────┼──────────────┼────────────┼──────────────────────────┼───────────┼───────────┤
+│ TOTAL                  │         │ 57       │ 3,445 │ 1,238  │ 332,600      │ 751,976    │                          │ 1,089,259 │ $1.252298 │
+└────────────────────────┴─────────┴──────────┴───────┴────────┴──────────────┴────────────┴──────────────────────────┴───────────┴───────────┘
 ```
 
-## 🎯 Smart Model Detection
+### 📁 Project List Output
 
-The tool automatically detects your actual Claude model using:
+```bash
+ccu --list-projects
+```
 
-1. **Session Records** (Most Reliable) - From `.claude/projects/*.jsonl` files
-2. **Environment Variables** - `ANTHROPIC_MODEL` variable
-3. **Settings File** - From `.claude/settings.json`
-4. **Fallback** - Defaults to `claude-3-sonnet-20240229`
-
-This ensures accurate pricing calculations based on your real usage.
+```
+📁 Available projects:
+  • WebGem (57 messages)
+  • app-discount (1 messages)
+  • evanlong (4 messages)
+```
 
 ## 🛠️ Requirements
 
