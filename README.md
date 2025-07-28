@@ -49,6 +49,9 @@ ccu --help
 
 # List all available projects
 ccu --list-projects
+
+# List all available models with pricing
+ccu --list-models
 ```
 
 ### 🔍 Filtering Options
@@ -134,6 +137,7 @@ ccu -p WebGem -d        # Shows all 57 individual WebGem messages with timestamp
 | `-d, --detailed` | Show individual messages | - | `false` (aggregated) |
 | `-a, --all` | Show all projects | - | `false` (auto-detect) |
 | `--list-projects` | List all projects | - | - |
+| `--list-models` | List all available models with pricing | - | - |
 
 ## 📊 Sample Output
 
@@ -207,10 +211,10 @@ If Claude Code isn't configured, you'll see:
 
 ## 🔒 Privacy & Security
 
-- **100% Local** - All data read from your local Claude Code files
-- **No Network Calls** - No data sent anywhere
+- **100% Local Data** - All Claude Code usage data read from your local files
+- **Minimal Network Usage** - Only fetches model pricing from LiteLLM (cached for 1 hour)
 - **No API Keys** - No authentication required
-- **Privacy First** - Your data stays on your machine
+- **Privacy First** - Your usage data never leaves your machine
 
 ## 🤝 Contributing
 

@@ -10,6 +10,7 @@ const filters = require('../lib/filters');
 const sorter = require('../lib/sorter');
 const aggregator = require('../lib/aggregator');
 const projectDetector = require('../lib/project-detector');
+const pricing = require('../lib/pricing');
 const { version } = require('../package.json');
 
 program
@@ -23,9 +24,12 @@ program
   .option('-d, --detailed', 'Show detailed view with individual messages (default: aggregated by day)')
   .option('-a, --all', 'Show all projects (default: auto-detect current project if in project directory)')
   .option('--list-projects', 'List all available projects')
+  .option('--list-models', 'List all available models with pricing')
   .action(async (options) => {
     if (options.listProjects) {
       showProjects();
+    } else if (options.listModels) {
+      showModels();
     } else {
       // Apply project auto-detection
       const projectAwareOptions = await projectDetector.getProjectAwareOptions(options);
@@ -239,5 +243,73 @@ async function showProjects() {
   } catch (error) {
     spinner.stop();
     console.error(chalk.red('❌ Error fetching projects:'), error.message);
+  }
+}
+
+async function showModels() {
+  const spinner = ora('Fetching model pricing data...').start();
+  try {
+    const pricingData = await pricing.fetchModelPricing();
+    const models = pricing.getAvailableModels(pricingData);
+    spinner.stop();
+    
+    if (models.length > 0) {
+      console.log(chalk.cyan('🤖 Available models with pricing:'));
+      console.log(chalk.gray(`Data source: ${pricing.LITELLM_PRICING_URL}`));
+      console.log('');
+      
+      const table = new Table({
+        head: [
+          chalk.white('Model'),
+          chalk.white('Input (per 1M tokens)'),
+          chalk.white('Output (per 1M tokens)'),
+          chalk.white('Cache Create (per 1M)'),
+          chalk.white('Cache Read (per 1M)')
+        ],
+        style: {
+          head: [],
+          border: ['gray']
+        }
+      });
+      
+      // Filter to show only Claude models
+      const claudeModels = models.filter(model => 
+        model.toLowerCase().includes('claude')
+      );
+      
+      claudeModels.forEach(modelName => {
+        const modelPricing = pricing.getModelPricing(modelName, pricingData);
+        if (modelPricing) {
+          const inputCost = modelPricing.input_cost_per_token ? 
+            `$${(modelPricing.input_cost_per_token * 1000000).toFixed(2)}` : 'N/A';
+          const outputCost = modelPricing.output_cost_per_token ? 
+            `$${(modelPricing.output_cost_per_token * 1000000).toFixed(2)}` : 'N/A';
+          const cacheCost = modelPricing.cache_creation_input_token_cost ? 
+            `$${(modelPricing.cache_creation_input_token_cost * 1000000).toFixed(2)}` : 'N/A';
+          const cacheReadCost = modelPricing.cache_read_input_token_cost ? 
+            `$${(modelPricing.cache_read_input_token_cost * 1000000).toFixed(2)}` : 'N/A';
+            
+          table.push([
+            chalk.yellow(modelName),
+            chalk.green(inputCost),
+            chalk.green(outputCost),
+            chalk.cyan(cacheCost),
+            chalk.cyan(cacheReadCost)
+          ]);
+        }
+      });
+      
+      console.log(table.toString());
+      
+      if (claudeModels.length < models.length) {
+        console.log(chalk.gray(`\nShowing ${claudeModels.length} Claude models out of ${models.length} total models.`));
+        console.log(chalk.gray('Use --list-all-models to see all available models.'));
+      }
+    } else {
+      console.log(chalk.yellow('No models found.'));
+    }
+  } catch (error) {
+    spinner.stop();
+    console.error(chalk.red('❌ Error fetching models:'), error.message);
   }
 }
