@@ -18,6 +18,7 @@ program
   .option('-p, --project <name>', 'Project name filter (partial matching supported)')
   .option('-s, --sort <field>', 'Sort by field (cost, time, tokens, project)', 'time')
   .option('-o, --order <direction>', 'Sort order (asc, desc)', 'desc')
+  .option('-d, --detailed', 'Show detailed view with individual messages (default: aggregated by day)')
   .option('--list-projects', 'List all available projects')
   .action((options) => {
     if (options.listProjects) {
@@ -26,6 +27,74 @@ program
       showUsage(options);
     }
   });
+
+// Aggregate messages by project and date (same project, same day = one row)
+function aggregateMessagesByProjectAndDate(messages) {
+  const aggregationMap = new Map();
+  
+  messages.forEach(msg => {
+    // Get date string without time (YYYY-MM-DD)
+    const dateStr = msg.timestamp ? new Date(msg.timestamp).toISOString().split('T')[0] : 'unknown';
+    const project = msg.project || '';
+    const key = `${project}||${dateStr}`; // Using || as separator to avoid conflicts
+    
+    if (!aggregationMap.has(key)) {
+      // Create new aggregated entry
+      aggregationMap.set(key, {
+        timestamp: msg.timestamp, // Keep the first timestamp for the day
+        project: msg.project,
+        role: msg.role,
+        inputTokens: 0,
+        outputTokens: 0,
+        cacheWriteTokens: 0,
+        cacheReadTokens: 0,
+        model: msg.model, // Keep the first model, could be mixed
+        cost: 0,
+        messageCount: 0,
+        models: new Set() // Track all models used on this day
+      });
+    }
+    
+    const aggregated = aggregationMap.get(key);
+    
+    // Accumulate token counts and costs
+    aggregated.inputTokens += msg.inputTokens || 0;
+    aggregated.outputTokens += msg.outputTokens || 0;
+    aggregated.cacheWriteTokens += msg.cacheWriteTokens || 0;
+    aggregated.cacheReadTokens += msg.cacheReadTokens || 0;
+    aggregated.cost += msg.cost || 0;
+    aggregated.messageCount += 1;
+    
+    // Track models used
+    if (msg.model) {
+      aggregated.models.add(msg.model);
+    }
+    
+    // Update timestamp to the latest one for the day
+    if (msg.timestamp && new Date(msg.timestamp) > new Date(aggregated.timestamp)) {
+      aggregated.timestamp = msg.timestamp;
+    }
+  });
+  
+  // Convert back to array and format model field
+  const result = Array.from(aggregationMap.values()).map(entry => {
+    // If multiple models were used, show count, otherwise show the model name
+    if (entry.models.size > 1) {
+      entry.model = `${entry.models.size} models`;
+    } else if (entry.models.size === 1) {
+      entry.model = Array.from(entry.models)[0];
+    } else {
+      entry.model = '';
+    }
+    
+    // Remove the models Set as it's no longer needed
+    delete entry.models;
+    
+    return entry;
+  });
+  
+  return result;
+}
 
 // If no options provided, show usage by default
 if (process.argv.slice(2).length === 0) {
@@ -45,9 +114,19 @@ async function showUsage(options) {
       projectFilter: options.project
     });
     
+    // Decide whether to aggregate or show detailed view
+    let finalMessages;
+    if (options.detailed) {
+      // Show detailed view with individual messages
+      finalMessages = filteredMessages;
+    } else {
+      // Default: aggregate messages by project and date
+      finalMessages = aggregateMessagesByProjectAndDate(filteredMessages);
+    }
+    
     // Apply sorting if specified
     if (options.sort) {
-      filteredMessages = sorter.sortMessages(filteredMessages, options.sort, options.order);
+      finalMessages = sorter.sortMessages(finalMessages, options.sort, options.order);
     }
     
     spinner.stop();
@@ -69,13 +148,17 @@ async function showUsage(options) {
       }
       
       if (options.time || options.project) {
-        console.log(chalk.gray(`  Results: ${filteredMessages.length} messages (${messages.length} total)`));
+        if (options.detailed) {
+          console.log(chalk.gray(`  Results: ${finalMessages.length} messages (from ${messages.length} total)`));
+        } else {
+          console.log(chalk.gray(`  Results: ${finalMessages.length} aggregated entries (${filteredMessages.length} messages from ${messages.length} total)`));
+        }
       }
       console.log('');
     }
 
-    // Display filtered messages
-    if (filteredMessages.length > 0) {
+    // Display aggregated messages
+    if (finalMessages.length > 0) {
       const table = new Table({
         head: [
           chalk.white('Time'),
@@ -95,13 +178,6 @@ async function showUsage(options) {
         }
       });
 
-      // Calculate project message counts for filtered messages
-      const projectMessageCounts = {};
-      filteredMessages.forEach(msg => {
-        const project = msg.project || '';
-        projectMessageCounts[project] = (projectMessageCounts[project] || 0) + 1;
-      });
-
       // Calculate totals
       let totalInput = 0;
       let totalOutput = 0;
@@ -109,13 +185,20 @@ async function showUsage(options) {
       let totalCacheRead = 0;
       let totalCost = 0;
       let grandTotal = 0;
+      let totalMessages = 0;
 
-      filteredMessages.forEach(msg => {
-        // Format timestamp to be more readable
+      finalMessages.forEach(msg => {
+        // Format timestamp based on detailed vs aggregated view
         let timeFormatted = '';
         if (msg.timestamp) {
           const date = new Date(msg.timestamp);
-          timeFormatted = date.toLocaleString();
+          if (options.detailed) {
+            // Detailed view: show full timestamp
+            timeFormatted = date.toLocaleString();
+          } else {
+            // Aggregated view: show date only
+            timeFormatted = date.toLocaleDateString();
+          }
         }
 
         // Calculate total tokens for this message
@@ -125,6 +208,9 @@ async function showUsage(options) {
         const msgCacheRead = msg.cacheReadTokens || 0;
         const totalTokens = msgInput + msgOutput + msgCacheCreate + msgCacheRead;
 
+        // Get message count based on view mode
+        const projectMsgCount = options.detailed ? 1 : (msg.messageCount || 1);
+
         // Add to totals
         totalInput += msgInput;
         totalOutput += msgOutput;
@@ -132,9 +218,7 @@ async function showUsage(options) {
         totalCacheRead += msgCacheRead;
         totalCost += (msg.cost || 0);
         grandTotal += totalTokens;
-
-        // Get message count for this project
-        const projectMsgCount = projectMessageCounts[msg.project || ''] || 0;
+        totalMessages += projectMsgCount;
 
         // Format cost as currency
         const costFormatted = '$' + (msg.cost || 0).toFixed(6);
@@ -159,7 +243,7 @@ async function showUsage(options) {
       table.push([
         chalk.bold.cyan('TOTAL'),
         chalk.bold.cyan(''),
-        chalk.bold.green(filteredMessages.length.toLocaleString()),
+        chalk.bold.green(totalMessages.toLocaleString()),
         chalk.bold.green(totalInput.toLocaleString()),
         chalk.bold.green(totalOutput.toLocaleString()),
         chalk.bold.green(totalCacheCreate.toLocaleString()),
