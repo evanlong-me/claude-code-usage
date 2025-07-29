@@ -3,7 +3,7 @@
 const { Command } = require('commander');
 const program = new Command();
 const chalk = require('chalk');
-const ora = require('ora');
+const { createSpinner } = require('nanospinner');
 const Table = require('cli-table3');
 const usage = require('../lib/usage');
 const filters = require('../lib/filters');
@@ -27,13 +27,13 @@ program
   .option('-lm, --list-models', 'List all available models with pricing')
   .action(async (options) => {
     if (options.listProjects) {
-      showProjects();
+      await showProjects();
     } else if (options.listModels) {
-      showModels();
+      await showModels();
     } else {
       // Apply project auto-detection
       const projectAwareOptions = await projectDetector.getProjectAwareOptions(options);
-      showUsage(projectAwareOptions);
+      await showUsage(projectAwareOptions);
     }
   });
 
@@ -42,14 +42,13 @@ program
 if (process.argv.slice(2).length === 0) {
   (async () => {
     const options = await projectDetector.getProjectAwareOptions({});
-    showUsage(options);
+    await showUsage(options);
   })();
 } else {
   program.parse(process.argv);
 }
 
 async function showUsage(options) {
-  const spinner = ora('Fetching usage data...').start();
   try {
     const { messages } = await usage.getUsage();
     
@@ -73,8 +72,6 @@ async function showUsage(options) {
     if (options.sort) {
       finalMessages = sorter.sortMessages(finalMessages, options.sort, options.order);
     }
-    
-    spinner.stop();
     
     // Show filter and sort info if applied
     if (options.time || options.project || (options.sort && options.sort !== 'time') || (options.order && options.order !== 'desc')) {
@@ -214,8 +211,6 @@ async function showUsage(options) {
     }
 
   } catch (error) {
-    spinner.stop();
-
     if (error.name === 'DetailedError') {
       console.log(error.message);
     } else {
@@ -225,16 +220,15 @@ async function showUsage(options) {
 }
 
 async function showProjects() {
-  const spinner = ora('Fetching project list...').start();
+  const spinner = createSpinner('Fetching project list...').start();
   try {
-    const { messages } = await usage.getUsage();
-    const projects = filters.getAvailableProjects(messages);
+    const { projects, messageCount } = await usage.getProjects();
     spinner.stop();
     
     if (projects.length > 0) {
       console.log(chalk.cyan('📁 Available projects:'));
       projects.forEach(project => {
-        const count = messages.filter(msg => msg.project === project).length;
+        const count = messageCount[project] || 0;
         console.log(chalk.yellow(`  • ${project}`) + chalk.gray(` (${count} messages)`));
       });
     } else {
@@ -247,7 +241,7 @@ async function showProjects() {
 }
 
 async function showModels() {
-  const spinner = ora('Fetching model pricing data...').start();
+  const spinner = createSpinner('Fetching model pricing data...').start();
   try {
     const pricingData = await pricing.fetchModelPricing();
     const models = pricing.getAvailableModels(pricingData);
