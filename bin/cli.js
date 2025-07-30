@@ -18,7 +18,7 @@ program
   .name('claude-code-usage')
   .version(version, '-v, --version', 'display version number')
   .description('A CLI tool for viewing Claude Code usage statistics')
-  .option('-t, --time <filter>', 'Time filter (e.g., 7d, 1m, 1y, 7-8, july-august, 2024-7-2024-8)')
+  .option('-t, --time <filter>', 'Time filter (e.g., 5min, 2h, 7d, 1m, 1y, 7-8, july-august, 2024-7-2024-8)')
   .option('-p, --project <name>', 'Project name filter (partial matching supported)')
   .option('-s, --sort <field>', 'Sort by field (cost, time, tokens, project)', 'time')
   .option('-o, --order <direction>', 'Sort order (asc, desc)', 'desc')
