@@ -11,6 +11,7 @@ const sorter = require('../lib/sorter');
 const aggregator = require('../lib/aggregator');
 const projectDetector = require('../lib/project-detector');
 const pricing = require('../lib/pricing');
+const updateChecker = require('../lib/update-checker');
 const { version } = require('../package.json');
 
 program
@@ -49,6 +50,9 @@ if (process.argv.slice(2).length === 0) {
 }
 
 async function showUsage(options) {
+  // Check for updates
+  await updateChecker.checkForUpdates();
+  
   try {
     const { messages } = await usage.getUsage();
     
@@ -220,6 +224,9 @@ async function showUsage(options) {
 }
 
 async function showProjects() {
+  // Check for updates
+  await updateChecker.checkForUpdates();
+  
   const spinner = createSpinner('Fetching project list...').start();
   try {
     const { projects, messageCount } = await usage.getProjects();
@@ -241,6 +248,9 @@ async function showProjects() {
 }
 
 async function showModels() {
+  // Check for updates
+  await updateChecker.checkForUpdates();
+  
   const spinner = createSpinner('Fetching model pricing data...').start();
   try {
     const pricingData = await pricing.fetchModelPricing();
