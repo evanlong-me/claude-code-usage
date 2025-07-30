@@ -63,21 +63,62 @@ ccu -lm
 
 ### 🔍 Filtering Options
 
-Filter your usage data by time range and project:
+Filter your usage data by time range and project. 
+
+**Note**: It's recommended to wrap time filters in quotes if they contain spaces.
+
+#### ⏰ Time Filtering Formats
+
+The tool supports various time filtering formats for maximum flexibility:
+
+**Relative Time Filters** (no quotes needed):
+- `5min`, `30min` - Last N minutes
+- `2h`, `12h` - Last N hours  
+- `7d`, `30d` - Last N days
+- `1m`, `6m` - Last N months
+- `1y`, `2y` - Last N years
+
+**Date Range Filters**:
+- `6-8` - Month range (June to August, current year)
+- `july-august`, `jan-mar` - Named month ranges
+- `2024-7-2024-8` - Cross-year month ranges
+- `2024-07-01,2024-08-31` - Specific date ranges
+
+**Precise DateTime Filters** (ISO 8601 format, **recommended**):
+- `2024-07-30T16:00:00,2024-07-30T18:00:00` - Second precision
+- `2024-07-30T16:00,2024-07-30T18:00` - Minute precision
+- `2024-07-30T16,2024-07-30T18` - Hour precision
+
+**Human-readable DateTime** (requires quotes):
+- `"2024-07-30 16:00:00,2024-07-30 18:00:00"` - Second precision
+- `"2024-07-30 16:00,2024-07-30 18:00"` - Minute precision
 
 ```bash
-# Filter by time range
+# Filter by relative time (no quotes needed)
+ccu -t 5min         # Last 5 minutes
+ccu -t 2h           # Last 2 hours
 ccu -t 7d           # Last 7 days
 ccu -t 1m           # Last 1 month
 ccu -t 1y           # Last 1 year
+
+# Filter by month range (no quotes needed)
 ccu -t 6-8          # June to August (current year)
 ccu -t july-august  # July to August (current year)
+
+# Filter by date and time (T-separator, no quotes needed)
+ccu -t 2024-07-01T14:30:15,2024-07-01T16:45:30  # With seconds
+ccu -t 2024-07-01T14:30,2024-07-01T16:45     # With minutes
+ccu -t 2024-07-01T14,2024-07-01T16         # With hours
+
+# Filter by date and time (space separator, quotes needed)
+ccu -t "2024-07-01 14:30,2024-07-01 16:45"
+
+# Filter by specific date range
+ccu -t 2024-07-01,2024-08-31
 ccu -t 2024-7-2024-8      # July 2024 to August 2024
-ccu -t 2024-07-01,2024-08-31  # Specific date range
 
 # Filter by project (partial matching supported)
 ccu -p myproject    # Show only messages from projects containing "myproject"
-ccu -p my-website   # Show only my-website project
 
 # Combine filters for precise results
 ccu -t 1m -p my-website # Last month's my-website project data
@@ -147,7 +188,7 @@ Complete reference table of all available options:
 
 | Option | Description | Values | Default |
 |--------|-------------|--------|---------|
-| `-t, --time` | Time filter | `7d`, `1m`, `1y`, `6-8`, `july-august`, etc. | - |
+| `-t, --time` | Time filter | `5min`, `2h`, `7d`, `1m`, `1y`, `6-8`, `july-august`, `2024-07-01T14:30,2024-07-01T16:45`, etc. | - |
 | `-p, --project` | Project filter | Project name (partial matching) | auto-detect |
 | `-s, --sort` | Sort field | `cost`, `time`, `tokens`, `project` | `time` |
 | `-o, --order` | Sort order | `asc`, `desc` | `desc` |
