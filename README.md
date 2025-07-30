@@ -182,6 +182,29 @@ ccu -p my-project       # Aggregated entry for my-project
 ccu -p my-project -d    # All individual my-project messages
 ```
 
+### ⭐ GitHub Prompt Configuration
+
+Manage the GitHub star prompt that appears after displaying results:
+
+```bash
+# Permanently disable the GitHub star prompt
+ccu --disable-github-prompt
+
+# Re-enable the GitHub star prompt
+ccu --enable-github-prompt
+
+# View all available options (including prompt settings)
+ccu -h
+```
+
+The tool will show a friendly prompt asking you to star the repository on GitHub after displaying usage statistics. You can:
+
+- **Keep it enabled** (default) - Helps support the project
+- **Disable it permanently** - The setting is saved and respected across all future runs
+- **Re-enable it anytime** - If you change your mind
+
+Your preference is stored in `~/.claude-code-usage-config.json`.
+
 ### 🅰️ All Options Reference
 
 Complete reference table of all available options:
@@ -196,6 +219,8 @@ Complete reference table of all available options:
 | `-a, --all` | Show all projects | - | `false` (auto-detect) |
 | `-lp, --list-projects` | List all projects | - | - |
 | `-lm, --list-models` | List all available models with pricing | - | - |
+| `--disable-github-prompt` | Permanently disable the GitHub star prompt | - | - |
+| `--enable-github-prompt` | Re-enable the GitHub star prompt | - | - |
 
 ## 📊 Sample Output
 

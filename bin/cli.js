@@ -12,6 +12,7 @@ const aggregator = require('../lib/aggregator');
 const projectDetector = require('../lib/project-detector');
 const pricing = require('../lib/pricing');
 const updateChecker = require('../lib/update-checker');
+const { showGitHubStarPrompt, disableGitHubPrompt, enableGitHubPrompt } = require('../lib/github-prompt');
 const { version } = require('../package.json');
 
 program
@@ -26,8 +27,14 @@ program
   .option('-a, --all', 'Show all projects (default: auto-detect current project if in project directory)')
   .option('-lp, --list-projects', 'List all available projects')
   .option('-lm, --list-models', 'List all available models with pricing')
+  .option('--disable-github-prompt', 'Permanently disable the GitHub star prompt')
+  .option('--enable-github-prompt', 'Re-enable the GitHub star prompt')
   .action(async (options) => {
-    if (options.listProjects) {
+    if (options.disableGithubPrompt) {
+      await disableGitHubPrompt();
+    } else if (options.enableGithubPrompt) {
+      await enableGitHubPrompt();
+    } else if (options.listProjects) {
       await showProjects();
     } else if (options.listModels) {
       await showModels();
@@ -204,6 +211,9 @@ async function showUsage(options) {
       ]);
 
       console.log(table.toString());
+      
+      // Add GitHub star prompt
+      await showGitHubStarPrompt();
     } else {
       console.log(chalk.yellow('📭 No messages found matching the specified filters.'));
       
@@ -239,6 +249,9 @@ async function showProjects() {
         const count = messageCount[project] || 0;
         console.log(chalk.yellow(`  • ${project}`) + chalk.gray(` (${count} messages)`));
       });
+      
+      // Add GitHub star prompt
+      await showGitHubStarPrompt();
     } else {
       console.log(chalk.yellow('No projects found.'));
     }
@@ -310,6 +323,9 @@ async function showModels() {
         console.log(chalk.gray(`\nShowing ${claudeModels.length} Claude models out of ${models.length} total models.`));
         console.log(chalk.gray('Use --list-all-models to see all available models.'));
       }
+      
+      // Add GitHub star prompt
+      await showGitHubStarPrompt();
     } else {
       console.log(chalk.yellow('No models found.'));
     }
