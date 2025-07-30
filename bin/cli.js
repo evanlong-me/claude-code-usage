@@ -119,7 +119,7 @@ async function showUsage(options) {
           chalk.white('Cache Read'),
           chalk.white('Model'),
           chalk.white('Total'),
-          chalk.white('Cost')
+          chalk.white('Cost (USD)')
         ],
         style: {
           head: [],
@@ -265,10 +265,10 @@ async function showModels() {
       const table = new Table({
         head: [
           chalk.white('Model'),
-          chalk.white('Input (per 1M tokens)'),
-          chalk.white('Output (per 1M tokens)'),
-          chalk.white('Cache Create (per 1M)'),
-          chalk.white('Cache Read (per 1M)')
+          chalk.white('Input (USD per 1M tokens)'),
+          chalk.white('Output (USD per 1M tokens)'),
+          chalk.white('Cache Create (USD per 1M)'),
+          chalk.white('Cache Read (USD per 1M)')
         ],
         style: {
           head: [],

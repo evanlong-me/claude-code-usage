@@ -12,6 +12,7 @@ A lightweight CLI tool for analyzing Claude Code usage statistics and costs loca
 - 📋 **Clean Table Display** - Organized tabular output with token counts, costs, and project info
 - 🔍 **Smart Filtering** - Filter by time ranges and project names
 - 📈 **Flexible Sorting** - Sort by cost, time, tokens, or project name
+- 🔄 **Auto Update Check** - Automatically checks for new versions and notifies when updates are available
 - 🚀 **Easy to Use** - Simple installation and intuitive commands
 
 ## 🚀 Quick Start
@@ -136,8 +137,8 @@ ccu --detailed
 ccu -d
 
 # Comparing views for specific projects
-ccu -p WebGem           # Aggregated entry for WebGem
-ccu -p WebGem -d        # All individual WebGem messages
+ccu -p my-project       # Aggregated entry for my-project
+ccu -p my-project -d    # All individual my-project messages
 ```
 
 ### 🅰️ All Options Reference
